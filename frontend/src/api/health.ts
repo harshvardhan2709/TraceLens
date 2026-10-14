@@ -16,7 +16,7 @@ export async function fetchDatabaseHealth(): Promise<DatabaseHealth> {
     }
     return {
       status: 'unhealthy',
-      database: 'postgresql',
+      database: 'mongodb',
       connected: false,
       details: error.message || 'Database connection error',
     };

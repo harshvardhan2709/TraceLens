@@ -149,7 +149,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
             isLoading ? (
               <span className="text-slate-400 text-sm">Probing...</span>
             ) : serviceHealth?.status === 'healthy' ? (
-              <span className="text-emerald-400 text-lg">FastAPI 0.115</span>
+              <span className="text-emerald-400 text-lg">FastAPI {serviceHealth.version ? `v${serviceHealth.version}` : 'Core'}</span>
             ) : (
               <span className="text-red-400 text-lg">Offline</span>
             )
@@ -164,12 +164,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
             isLoading ? (
               <span className="text-slate-400 text-sm">Probing...</span>
             ) : dbHealth?.connected ? (
-              <span className="text-emerald-400 text-lg">MongoDB 7.0</span>
+              <span className="text-emerald-400 text-lg">MongoDB {dbHealth.database ? `(${dbHealth.database})` : 'Connected'}</span>
             ) : (
               <span className="text-amber-400 text-lg">Disconnected</span>
             )
           }
-          subtitle={dbHealth?.database ? `database: ${dbHealth.database}` : 'Connection timed out'}
+          subtitle={dbHealth?.details || (dbHealth?.database ? `database: ${dbHealth.database}` : 'Connection timed out')}
         />
 
         <MetricCard

@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class IncidentStatus(str, Enum):
@@ -16,6 +16,13 @@ class IncidentCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255, description="Incident title or summary")
     description: Optional[str] = Field(None, max_length=2000, description="Optional incident description")
     status: IncidentStatus = Field(default=IncidentStatus.OPEN, description="Initial incident status")
+
+    @field_validator("title")
+    @classmethod
+    def validate_title_not_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Incident title cannot be empty or purely whitespace")
+        return v.strip()
 
 
 class IncidentUpdate(BaseModel):

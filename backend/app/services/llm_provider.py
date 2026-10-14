@@ -271,7 +271,36 @@ class RuleSynthesizerProvider(BaseLLMProvider):
                 "status": "plausible",
             })
 
-        # Case B: Request Validation or Missing Required Payload Field
+        # Case B: Rate Limiting / Upstream Quota Throttling (HTTP 429)
+        rate_limit_logs = [
+            l for l in logs
+            if any(term in l.get("message", "").lower() for term in [
+                "429", "rate limit", "too many requests", "quota exceeded", "throttled", "throttling",
+            ])
+        ]
+        if rate_limit_logs:
+            evidence_ids = [l["id"] for l in rate_limit_logs[:5]]
+            ranked_hypotheses.append({
+                "rank": len(ranked_hypotheses) + 1,
+                "title": "Rate Limit Exceeded or Upstream Quota Throttling",
+                "plausibility_reasoning": (
+                    "Observed HTTP 429 Too Many Requests responses or quota exhaustion warnings indicating request traffic "
+                    "exceeded permitted rate windows for dependencies."
+                ),
+                "supporting_evidence_ids": evidence_ids,
+                "invalid_evidence_ids": [],
+                "contradictory_or_missing_evidence": (
+                    "Client request rate volume curves and quota allocation tiers are not available in application logs."
+                ),
+                "recommended_debugging_steps": [
+                    "Inspect quota tiers and rate-limit headers (Retry-After, X-RateLimit-Remaining).",
+                    "Implement client-side exponential backoff with jitter on retry loops.",
+                    "Verify if burst traffic or distributed spikes saturated the token bucket.",
+                ],
+                "status": "plausible",
+            })
+
+        # Case C: Request Validation or Missing Required Payload Field
         validation_logs = [
             l for l in logs
             if any(term in l.get("message", "").lower() for term in ["validation", "missing", "keyerror", "400 bad request", "unauthorized", "invalid field"])
@@ -298,10 +327,10 @@ class RuleSynthesizerProvider(BaseLLMProvider):
                 "status": "plausible",
             })
 
-        # Case C: Downstream External Dependency Latency / 504 Gateway Timeout
+        # Case D: Downstream External Dependency Latency / 504 Gateway Timeout
         external_timeout_logs = [
             l for l in logs
-            if any(term in l.get("message", "").lower() for term in ["504", "gateway timeout", "downstream", "http client timeout", "third-party", "stripe", "payment"])
+            if any(term in l.get("message", "").lower() for term in ["504", "gateway timeout", "downstream timeout", "http client timeout", "deadline exceeded"])
         ]
         if external_timeout_logs and not any("Database" in h["title"] for h in ranked_hypotheses):
             evidence_ids = [l["id"] for l in external_timeout_logs[:5]]

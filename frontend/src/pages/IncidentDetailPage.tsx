@@ -287,8 +287,12 @@ export const IncidentDetailPage: React.FC = () => {
   }, [logs, logSearch]);
 
   // Operational metrics
-  const errorCount = logs.filter((l) => l.severity === 'ERROR' || l.severity === 'CRITICAL').length;
-  const warnCount = logs.filter((l) => l.severity === 'WARNING').length;
+  const errorCount = analysis
+    ? analysis.severity_distribution.error + analysis.severity_distribution.critical
+    : logs.filter((l) => l.severity === 'ERROR' || l.severity === 'CRITICAL').length;
+  const warnCount = analysis
+    ? analysis.severity_distribution.warning
+    : logs.filter((l) => l.severity === 'WARNING').length;
   const involvedServices = Array.from(new Set(logs.map((l) => l.service_name).filter(Boolean))) as string[];
 
   const formatDuration = (seconds?: number) => {
@@ -421,7 +425,18 @@ export const IncidentDetailPage: React.FC = () => {
           <div className="bg-[#0B0F17] p-2 rounded border border-[#1E293B]">
             <div className="text-[10px] text-slate-400 uppercase">Time Window</div>
             <div className="text-sm font-semibold text-slate-200 mt-0.5">
-              {analysis ? formatDuration(analysis.time_window.duration_seconds) : 'N/A'}
+              {analysis
+                ? formatDuration(analysis.time_window.duration_seconds)
+                : logs.length > 1
+                ? formatDuration(
+                    Math.abs(
+                      new Date(logs[0].timestamp).getTime() -
+                        new Date(logs[logs.length - 1].timestamp).getTime()
+                    ) / 1000
+                  )
+                : totalLogs === 1
+                ? '0s (1 event)'
+                : '0s'}
             </div>
           </div>
 
