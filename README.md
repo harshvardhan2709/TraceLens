@@ -6,7 +6,7 @@ TraceLens AI helps engineering and DevOps teams investigate failed API requests 
 
 ---
 
-## 1. Architecture Overview (Phase 1: Foundation)
+## 1. Architecture Overview
 
 ```text
 tracelens-ai/
@@ -22,22 +22,22 @@ tracelens-ai/
 │   │   └── main.tsx              # DOM mounting point
 │   ├── .env.example              # Frontend environment template
 │   └── package.json
-├── backend/                      # Python 3.13 + FastAPI + SQLAlchemy 2.0
+├── backend/                      # Python 3.13 + FastAPI + PyMongo Async API
 │   ├── app/
 │   │   ├── api/routes/           # API routes (GET /api/health, GET /api/health/db)
-│   │   ├── core/                 # Settings & Pydantic config
-│   │   ├── db/                   # SQLAlchemy engine, session maker, Base
-│   │   ├── models/               # SQLAlchemy ORM models (Phase 2+)
+│   │   ├── core/                 # Settings & Pydantic config (MONGODB_URL)
+│   │   ├── db/                   # PyMongo AsyncMongoClient lifecycle & collections
+│   │   │   ├── mongo.py          # Connection pool, health check, index creation
+│   │   │   └── __init__.py       # Database package exports
+│   │   ├── models/               # Data model schemas (Phase 2)
 │   │   ├── schemas/              # Pydantic validation schemas
-│   │   ├── services/             # Diagnostic domain logic (Phase 2+)
-│   │   └── main.py               # FastAPI entry point & CORS configuration
-│   ├── alembic/                  # Schema migration versions & env.py
+│   │   ├── services/             # Diagnostic domain logic (Phase 2)
+│   │   └── main.py               # FastAPI entry point, lifespan, & CORS
 │   ├── tests/                    # pytest + HTTPX automated test suite
-│   ├── alembic.ini               # Database migration configuration
 │   ├── requirements.txt          # Pinned backend dependencies
 │   └── .env.example              # Backend environment template
 ├── docs/                         # Architecture documentation & ADRs
-├── .gitignore                    # Secrets, virtualenvs, and build artifacts
+├── .gitignore                    # Secrets, virtualenvs, and data files
 ├── README.md                     # Setup instructions & developer guide
 └── .env.example                  # Root workspace environment template
 ```
@@ -51,7 +51,7 @@ tracelens-ai/
 | **Python** | 3.11+ (or 3.13) | Python 3.13.0 |
 | **Node.js** | 20.x or 22.x LTS | Node v22.22.2 |
 | **npm** | 10.x+ | npm 10.9.7 |
-| **PostgreSQL** | 14+ | Local or Cloud (Neon, Supabase, RDS) |
+| **MongoDB** | 6.0+ or 7.0+ | MongoDB 7.0 (Local or Atlas) |
 
 ---
 
@@ -100,26 +100,64 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ---
 
-### Step B: Database Setup (PostgreSQL)
+### Step B: Database Setup (MongoDB)
 
-TraceLens AI connects via modern `SQLAlchemy 2.0` with the `psycopg` (psycopg 3) driver:
+TraceLens AI connects asynchronously via PyMongo's modern `AsyncMongoClient` (PyMongo 4.9+):
 
-1. Create a database named `tracelens` in your PostgreSQL instance.
-2. Configure `DATABASE_URL` in `backend/.env`:
-   ```bash
-   DATABASE_URL="postgresql+psycopg://<username>:<password>@localhost:5432/tracelens"
-   ```
-3. Run Alembic migrations:
+#### Option 1: Local MongoDB Server
+1. If running as a Windows Service:
    ```powershell
-   cd backend
-   alembic upgrade head
+   # In an elevated PowerShell / Command Prompt:
+   net start MongoDB
+   ```
+2. Or run `mongod` directly:
+   ```powershell
+   mongod --dbpath backend/data/db --bind_ip 127.0.0.1 --port 27017
+   ```
+3. Set your configuration in `backend/.env`:
+   ```bash
+   MONGODB_URL="mongodb://127.0.0.1:27017"
+   MONGODB_DATABASE="tracelens"
+   MONGODB_TIMEOUT_MS=2000
    ```
 
-*Note: If PostgreSQL is not yet running locally, the FastAPI service will still start cleanly and report database connection status via `GET /api/health/db` without crashing.*
+#### Option 2: Managed MongoDB (MongoDB Atlas)
+1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/atlas).
+2. Create a database user and allow your IP in Network Access.
+3. Set your connection string in `backend/.env`:
+   ```bash
+   MONGODB_URL="mongodb+srv://<username>:<password>@<cluster-url>/tracelens?retryWrites=true&w=majority"
+   MONGODB_DATABASE="tracelens"
+   ```
+
+*Note: If MongoDB is unavailable when the backend starts, the FastAPI service will still start cleanly and report database connection status via `GET /api/health/db` without crashing.*
 
 ---
 
-### Step C: Frontend Setup
+### Step C: Database Collections & Index Planning
+
+TraceLens AI organizes data across two separate collections to prevent document unbounded growth:
+
+1. **`incidents`**:
+   - Stores failure incident metadata, severity status, and investigation lifecycle.
+   - Indexes:
+     - `status`: Ascending (`idx_incident_status`)
+     - `created_at`: Descending (`idx_incident_created_at`)
+
+2. **`log_events`**:
+   - Stores individual searchable log entries correlated with an incident.
+   - Indexes:
+     - `incident_id`: Ascending (`idx_log_incident_id`)
+     - `timestamp`: Descending (`idx_log_timestamp`)
+     - Compound `("incident_id", 1), ("timestamp", -1)` (`idx_log_incident_timestamp`)
+     - `severity`: Ascending (`idx_log_severity`)
+     - `request_id`: Ascending, sparse (`idx_log_request_id`)
+
+Indexes are verified and initialized automatically during application lifespan startup when the database is connected.
+
+---
+
+### Step D: Frontend Setup
 
 #### 1. Navigate to frontend and install dependencies
 ```powershell
@@ -141,12 +179,12 @@ npm run dev
 
 ---
 
-## 4. API Endpoints (Phase 1)
+## 4. API Endpoints
 
 | Method | Path | Description | Expected Status |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service status, project name, version, and environment | `200 OK` |
-| `GET` | `/api/health/db` | Probes PostgreSQL connectivity via `SELECT 1` | `200 OK` (connected) / `503 Service Unavailable` |
+| `GET` | `/api/health/db` | Probes MongoDB connectivity via `client.admin.command('ping')` | `200 OK` (connected) / `503 Service Unavailable` |
 | `GET` | `/api/docs` | Swagger UI documentation | `200 OK` |
 | `GET` | `/api/openapi.json` | OpenAPI 3.1 specification schema | `200 OK` |
 
@@ -154,6 +192,6 @@ npm run dev
 
 ## 5. Security & Hygiene Rules
 
-- **Zero Secret Commits**: Real credentials, `.env` files, and connection strings are excluded by root `.gitignore`.
+- **Zero Secret Commits**: Real credentials, `.env` files, connection strings, and local database data folders (`data/`, `backend/data/`) are excluded by root `.gitignore`.
 - **Environment Driven**: Both backend and frontend dynamically read configuration from environment files (`.env`).
 - **CORS Restricted**: Backend CORS is explicitly restricted to local Vite dev server origins (`http://localhost:5173`, `http://127.0.0.1:5173`).

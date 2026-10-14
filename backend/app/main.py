@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.api.routes.health import router as health_router
+from app.db.mongo import init_db_client, close_db_client, ensure_indexes
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,8 +18,14 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing %s (env: %s, debug: %s)...", settings.PROJECT_NAME, settings.ENVIRONMENT, settings.DEBUG)
+    # Initialize MongoDB client connection pool
+    await init_db_client()
+    # Ensure indexes are established if database is reachable
+    await ensure_indexes()
     yield
+    # Graceful shutdown of MongoDB client
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    await close_db_client()
 
 
 app = FastAPI(

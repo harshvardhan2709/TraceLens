@@ -10,9 +10,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
-    # Database Configuration (PostgreSQL)
-    # Default connection string uses psycopg 3 driver
-    DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/tracelens"
+    # MongoDB Configuration
+    MONGODB_URL: str = "mongodb://127.0.0.1:27017"
+    MONGODB_DATABASE: str = "tracelens"
+    MONGODB_TIMEOUT_MS: int = 2000
 
     # CORS configuration for local Vite development
     BACKEND_CORS_ORIGINS: List[str] = [

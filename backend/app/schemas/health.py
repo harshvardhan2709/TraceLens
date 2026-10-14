@@ -11,6 +11,6 @@ class HealthResponse(BaseModel):
 
 class DatabaseHealthResponse(BaseModel):
     status: str = Field(..., description="Database status, 'healthy' or 'unhealthy'")
-    database: str = Field(default="postgresql", description="Target database engine")
+    database: str = Field(default="mongodb", description="Target database engine")
     connected: bool = Field(..., description="Whether connection test succeeded")
-    details: Optional[str] = Field(None, description="Additional status message or error details")
+    details: Optional[str] = Field(None, description="Safe status message without exposing credentials")

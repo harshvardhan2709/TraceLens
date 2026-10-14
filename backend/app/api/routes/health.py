@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status
 from app.core.config import get_settings
-from app.db.session import check_db_connection
+from app.db.mongo import check_mongo_connection
 from app.schemas.health import HealthResponse, DatabaseHealthResponse
 
 router = APIRouter(prefix="", tags=["Health"])
@@ -23,25 +23,25 @@ def get_service_health() -> HealthResponse:
     response_model=DatabaseHealthResponse,
     summary="Database Connectivity Check",
     responses={
-        200: {"description": "Database is reachable"},
-        503: {"description": "Database connection failed or unreachable"},
+        200: {"description": "MongoDB is reachable and healthy"},
+        503: {"description": "MongoDB connection failed or unreachable"},
     },
 )
-def get_db_health(response: Response) -> DatabaseHealthResponse:
-    """Check PostgreSQL database connectivity."""
-    connected, details = check_db_connection()
+async def get_db_health(response: Response) -> DatabaseHealthResponse:
+    """Check MongoDB database connectivity via admin ping command."""
+    connected, details = await check_mongo_connection()
     if not connected:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return DatabaseHealthResponse(
             status="unhealthy",
-            database="postgresql",
+            database="mongodb",
             connected=False,
             details=details,
         )
 
     return DatabaseHealthResponse(
         status="healthy",
-        database="postgresql",
+        database="mongodb",
         connected=True,
         details=details,
     )

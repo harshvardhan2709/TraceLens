@@ -4,6 +4,11 @@
 .env.*.local
 *.env
 
+# Local Database Data Files
+data/
+backend/data/
+*.db
+
 # Python / Virtual Environments
 __pycache__/
 *.py[cod]

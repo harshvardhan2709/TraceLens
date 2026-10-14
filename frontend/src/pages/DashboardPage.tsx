@@ -82,7 +82,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
             System Infrastructure & Connectivity
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            TraceLens AI Phase 1 foundation: FastAPI core, PostgreSQL connection check, and Vite React frontend.
+            TraceLens AI foundation: FastAPI core, MongoDB async client, and Vite React frontend.
           </p>
         </div>
 
@@ -157,17 +157,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
             isLoading ? (
               <span className="text-slate-400 text-sm">Checking...</span>
             ) : dbHealth?.connected ? (
-              <span className="text-emerald-400">PostgreSQL</span>
+              <span className="text-emerald-400">MongoDB</span>
             ) : (
               <span className="text-amber-400">Unavailable</span>
             )
           }
           subtitle={
             dbHealth?.connected
-              ? 'Active connection pool'
+              ? 'Active connection (AsyncMongoClient)'
               : dbHealth?.details
               ? dbHealth.details
-              : 'PostgreSQL instance not reachable'
+              : 'MongoDB instance not reachable'
           }
           statusBadge={
             isLoading ? (
@@ -218,18 +218,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
             <Database className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-2 text-sm">
               <div className="font-semibold text-amber-300">
-                PostgreSQL Connection Notice
+                MongoDB Connection Notice
               </div>
               <p className="text-xs text-slate-300">
-                The FastAPI service is operational, but PostgreSQL is not currently running at the configured address (
-                <code className="font-mono bg-black/40 px-1 py-0.5 text-amber-200">localhost:5432/tracelens</code>).
-                This is expected if PostgreSQL is not yet installed or started locally.
+                The FastAPI service is operational, but MongoDB is not reachable at the configured address (
+                <code className="font-mono bg-black/40 px-1 py-0.5 text-amber-200">mongodb://127.0.0.1:27017</code>).
               </p>
               <div className="text-xs text-slate-400 space-y-1">
-                <div>To connect a database:</div>
+                <div>To connect MongoDB:</div>
                 <ul className="list-disc list-inside space-y-0.5 font-mono text-[11px] text-slate-300">
-                  <li>Option A: Start local PostgreSQL service (<code className="bg-slate-900 px-1 py-0.5 rounded">net start postgresql-x64-16</code> or pgAdmin)</li>
-                  <li>Option B: Update <code className="bg-slate-900 px-1 py-0.5 rounded">DATABASE_URL</code> in <code className="bg-slate-900 px-1 py-0.5 rounded">backend/.env</code> with your cloud database (Neon, Supabase, RDS)</li>
+                  <li>Option A: Start local MongoDB service (<code className="bg-slate-900 px-1 py-0.5 rounded">net start MongoDB</code> in an elevated terminal)</li>
+                  <li>Option B: Configure <code className="bg-slate-900 px-1 py-0.5 rounded">MONGODB_URL</code> in <code className="bg-slate-900 px-1 py-0.5 rounded">backend/.env</code> with MongoDB Atlas or your remote cluster</li>
                 </ul>
               </div>
             </div>

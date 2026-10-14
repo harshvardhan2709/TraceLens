@@ -70,8 +70,8 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
       {/* Footer */}
       <footer className="border-t border-[#1F2937] py-4 bg-[#0B0F17] text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>TraceLens AI — API Failure Investigation & Regression Testing Platform (Phase 1 Foundation)</div>
-          <div className="font-mono text-slate-400">FastAPI + PostgreSQL + Vite React</div>
+          <div>TraceLens AI — API Failure Investigation & Regression Testing Platform</div>
+          <div className="font-mono text-slate-400">FastAPI + MongoDB + Vite React</div>
         </div>
       </footer>
     </div>
