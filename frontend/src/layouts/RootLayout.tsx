@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Activity, Terminal } from 'lucide-react';
+import { Terminal, Shield, BookOpen } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 
 interface RootLayoutProps {
@@ -20,38 +20,41 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-200 flex flex-col font-sans">
-      {/* Top Navbar */}
-      <header className="border-b border-[#1F2937] bg-[#0E131F]/90 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-md bg-indigo-950 border border-indigo-700/60 flex items-center justify-center text-indigo-400 group-hover:border-indigo-500 transition-colors">
-                <Activity className="w-4 h-4" />
+    <div className="min-h-screen bg-[#0B0F17] text-slate-200 flex flex-col font-sans selection:bg-blue-900 selection:text-white">
+      {/* Developer Console Top Navigation Bar */}
+      <header className="border-b border-[#1E293B] bg-[#0E131F] sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          {/* Product Brand & Primary Navigation */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-7 h-7 rounded bg-[#162032] border border-[#2B3B53] flex items-center justify-center text-blue-400 group-hover:border-blue-500 transition-colors">
+                <Shield className="w-3.5 h-3.5" />
               </div>
-              <div>
-                <span className="font-semibold text-base text-slate-100 tracking-tight">TraceLens</span>
-                <span className="ml-1 text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/40">AI</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-bold text-sm tracking-tight text-slate-100">TraceLens</span>
+                <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-[#1E293B] text-slate-400 border border-[#334155]">
+                  CORE
+                </span>
               </div>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1.5">
+            <nav className="flex items-center gap-1">
               <Link
                 to="/"
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                   isNavActive('/')
-                    ? 'text-slate-100 bg-[#161F30] border border-[#23314B]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#161F30]/50'
+                    ? 'text-slate-100 bg-[#1E293B] border border-[#334155]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#162032]'
                 }`}
               >
                 Dashboard
               </Link>
               <Link
                 to="/incidents"
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                   isNavActive('/incidents')
-                    ? 'text-slate-100 bg-[#161F30] border border-[#23314B]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#161F30]/50'
+                    ? 'text-slate-100 bg-[#1E293B] border border-[#334155]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#162032]'
                 }`}
               >
                 Incidents
@@ -59,9 +62,10 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Right Status & System Connectivity Indicators */}
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 hidden sm:inline">Backend API:</span>
+              <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">Backend:</span>
               {isLoading ? (
                 <StatusBadge status="loading" label="Checking" />
               ) : isBackendHealthy === true ? (
@@ -69,30 +73,47 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
               ) : isBackendHealthy === false ? (
                 <StatusBadge status="unhealthy" label="Unreachable" />
               ) : (
-                <StatusBadge status="disconnected" label="Connecting..." />
+                <StatusBadge status="disconnected" label="Connecting" />
               )}
             </div>
 
-            <div className="h-4 w-px bg-slate-800 hidden sm:block" />
+            <div className="h-3.5 w-px bg-[#1E293B] hidden sm:block" />
 
-            <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-[#111827] px-2.5 py-1 rounded border border-[#1F2937]">
-              <Terminal className="w-3.5 h-3.5 text-slate-500" />
+            <a
+              href="http://127.0.0.1:8000/api/docs"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden md:inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono text-slate-400 hover:text-slate-200 bg-[#111827] border border-[#1E293B] hover:border-slate-700 transition-colors"
+              title="Open OpenAPI Swagger Documentation"
+            >
+              <BookOpen className="w-3 h-3 text-slate-500" />
+              <span>Swagger API</span>
+            </a>
+
+            <div className="flex items-center gap-1 text-[11px] font-mono text-slate-400 bg-[#111827] px-2 py-1 rounded border border-[#1E293B]">
+              <Terminal className="w-3 h-3 text-slate-500" />
               <span>v0.1.0</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Workspace Surface */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#1F2937] py-4 bg-[#0B0F17] text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>TraceLens AI — API Failure Investigation & Regression Testing Platform</div>
-          <div className="font-mono text-slate-400">FastAPI + MongoDB + Vite React</div>
+      {/* Engineering Footer */}
+      <footer className="border-t border-[#1E293B] py-3 bg-[#0B0F17] text-[11px] text-slate-400 font-mono">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span>TraceLens AI</span>
+            <span>•</span>
+            <span className="text-slate-400">Deterministic Failure Correlation & AI Diagnostic Investigation</span>
+          </div>
+          <div className="text-slate-400">
+            FastAPI + MongoDB 7.0 + Vite React
+          </div>
         </div>
       </footer>
     </div>
