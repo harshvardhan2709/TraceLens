@@ -4,6 +4,7 @@ import type {
   IncidentCreate,
   IncidentListResponse,
   IncidentAnalysisResponse,
+  IncidentInvestigationResponse,
   LogEventCreate,
   LogEventListResponse,
   LogIngestionResponse,
@@ -67,4 +68,26 @@ export async function fetchIncidentAnalysis(incidentId: string): Promise<Inciden
   const response = await apiClient.get<IncidentAnalysisResponse>(`/incidents/${incidentId}/analysis`);
   return response.data;
 }
+
+export async function investigateIncident(
+  incidentId: string,
+  provider?: string,
+): Promise<IncidentInvestigationResponse> {
+  const params: Record<string, any> = {};
+  if (provider) {
+    params.provider = provider;
+  }
+  const response = await apiClient.post<IncidentInvestigationResponse>(
+    `/incidents/${incidentId}/investigate`,
+    null,
+    { params },
+  );
+  return response.data;
+}
+
+export async function fetchIncidentInvestigation(incidentId: string): Promise<IncidentInvestigationResponse> {
+  const response = await apiClient.get<IncidentInvestigationResponse>(`/incidents/${incidentId}/investigation`);
+  return response.data;
+}
+
 

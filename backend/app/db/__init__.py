@@ -4,6 +4,7 @@ from app.db.mongo import (
     get_incidents_collection,
     get_log_events_collection,
     get_analyses_collection,
+    get_investigations_collection,
     init_db_client,
     close_db_client,
     check_mongo_connection,
@@ -11,6 +12,7 @@ from app.db.mongo import (
     COLLECTION_INCIDENTS,
     COLLECTION_LOG_EVENTS,
     COLLECTION_ANALYSES,
+    COLLECTION_INVESTIGATIONS,
 )
 
 __all__ = [
@@ -19,6 +21,7 @@ __all__ = [
     "get_incidents_collection",
     "get_log_events_collection",
     "get_analyses_collection",
+    "get_investigations_collection",
     "init_db_client",
     "close_db_client",
     "check_mongo_connection",
@@ -26,4 +29,6 @@ __all__ = [
     "COLLECTION_INCIDENTS",
     "COLLECTION_LOG_EVENTS",
     "COLLECTION_ANALYSES",
+    "COLLECTION_INVESTIGATIONS",
 ]
+

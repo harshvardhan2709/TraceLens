@@ -16,6 +16,8 @@ _mongo_client: Optional[AsyncMongoClient] = None
 COLLECTION_INCIDENTS = "incidents"
 COLLECTION_LOG_EVENTS = "log_events"
 COLLECTION_ANALYSES = "analyses"
+COLLECTION_INVESTIGATIONS = "investigations"
+
 
 
 def get_client() -> AsyncMongoClient:
@@ -56,6 +58,12 @@ def get_log_events_collection() -> AsyncCollection:
 def get_analyses_collection() -> AsyncCollection:
     """Return collection for deterministic incident analysis reports."""
     return get_database()[COLLECTION_ANALYSES]
+
+
+def get_investigations_collection() -> AsyncCollection:
+    """Return collection for evidence-grounded AI diagnostic investigations."""
+    return get_database()[COLLECTION_INVESTIGATIONS]
+
 
 
 async def init_db_client() -> AsyncMongoClient:
@@ -142,6 +150,10 @@ async def ensure_indexes() -> None:
         analyses = get_analyses_collection()
         await analyses.create_index([("incident_id", ASCENDING)], name="idx_analysis_incident_id", unique=True)
         await analyses.create_index([("analyzed_at", DESCENDING)], name="idx_analysis_analyzed_at")
+
+        investigations = get_investigations_collection()
+        await investigations.create_index([("incident_id", ASCENDING)], name="idx_investigation_incident_id", unique=True)
+        await investigations.create_index([("investigated_at", DESCENDING)], name="idx_investigation_investigated_at")
         logger.info("MongoDB indexes verified successfully.")
     except Exception as exc:
         logger.warning("Could not verify MongoDB indexes: %s", exc)

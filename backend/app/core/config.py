@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +28,15 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+
+    # AI & LLM Investigation Configuration
+    LLM_PROVIDER: str = "auto"
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_BASE_URL: Optional[str] = None
+    LLM_TIMEOUT_SECONDS: float = 25.0
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

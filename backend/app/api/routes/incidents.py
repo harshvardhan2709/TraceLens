@@ -7,6 +7,7 @@ from app.schemas.log_event import (
     LogEventListResponse,
 )
 from app.schemas.analysis import IncidentAnalysisResponse
+from app.schemas.investigation import IncidentInvestigationResponse
 from app.services.incident_service import (
     create_incident,
     get_incident_by_id,
@@ -19,6 +20,10 @@ from app.services.log_service import (
 from app.services.analysis_service import (
     analyze_incident,
     get_latest_analysis,
+)
+from app.services.investigation_service import (
+    investigate_incident,
+    get_latest_investigation,
 )
 
 router = APIRouter(prefix="/incidents", tags=["Incidents & Logs"])
@@ -143,4 +148,30 @@ async def post_analyze_incident(incident_id: str) -> IncidentAnalysisResponse:
 async def get_incident_analysis(incident_id: str) -> IncidentAnalysisResponse:
     """Retrieve the latest deterministic analysis and findings for an incident."""
     return await get_latest_analysis(incident_id)
+
+
+@router.post(
+    "/{incident_id}/investigate",
+    response_model=IncidentInvestigationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate evidence-grounded AI diagnostic investigation",
+)
+async def post_investigate_incident(
+    incident_id: str,
+    provider: Optional[str] = Query(None, description="Optional LLM provider override (gemini, openai, rule_synthesizer)"),
+) -> IncidentInvestigationResponse:
+    """Execute AI diagnostic investigation interpreting deterministic patterns with server-side evidence validation."""
+    return await investigate_incident(incident_id, provider_override=provider)
+
+
+@router.get(
+    "/{incident_id}/investigation",
+    response_model=IncidentInvestigationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get AI diagnostic investigation",
+)
+async def get_incident_investigation(incident_id: str) -> IncidentInvestigationResponse:
+    """Retrieve the latest AI diagnostic investigation report for an incident."""
+    return await get_latest_investigation(incident_id)
+
 

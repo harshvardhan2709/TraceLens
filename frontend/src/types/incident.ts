@@ -120,3 +120,27 @@ export interface IncidentAnalysisResponse {
   request_correlations: RequestCorrelation[];
 }
 
+export interface DiagnosticHypothesis {
+  rank: number;
+  title: string;
+  plausibility_reasoning: string;
+  supporting_evidence_ids: string[];
+  invalid_evidence_ids: string[];
+  contradictory_or_missing_evidence?: string | null;
+  recommended_debugging_steps: string[];
+  status: string;
+}
+
+export interface IncidentInvestigationResponse {
+  incident_id: string;
+  investigated_at: string;
+  provider: string;
+  model_name: string;
+  incident_summary: string;
+  observed_facts: string[];
+  ranked_hypotheses: DiagnosticHypothesis[];
+  uncertainty_and_limitations: string[];
+  total_evidence_referenced: number;
+}
+
+

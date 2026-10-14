@@ -210,6 +210,19 @@ npm run dev
 3. **`RULE_REQUEST_WARNING_BEFORE_ERROR`**: Identifies requests where an early warning event chronologically preceded a failure event.
 4. **`RULE_SERVICE_ERROR_CONCENTRATION`**: Flags when a single service accounts for >= 65% of all incident errors.
 
+### Evidence-Grounded AI Investigation (Phase 4)
+| Method | Path | Description | Expected Status |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/incidents/{incident_id}/investigate` | Generate ranked diagnostic hypotheses, debugging steps, and server-validated evidence references | `200 OK` / `404 Not Found` |
+| `GET` | `/api/incidents/{incident_id}/investigation` | Retrieve stored AI diagnostic investigation report | `200 OK` / `404 Not Found` |
+
+#### AI Investigation Architecture & Safety
+- **Provider Abstraction**: Supports Google Gemini REST API, OpenAI / compatible chat completions, and a zero-dependency deterministic `RuleSynthesizerProvider` fallback when external API keys are not configured.
+- **Server-Side Evidence Validation**: Every evidence reference ID emitted by the model is strictly checked against stored log event UUIDs. Hallucinated or unsupported IDs are pruned and flagged in `invalid_evidence_ids`.
+- **Prompt-Injection Containment**: Untrusted log payloads are isolated inside bounded `<untrusted_telemetry>` delimiters with strict system instructions prohibiting directive execution.
+- **Strict Separation of Observations**: Facts are kept distinct from inferred hypotheses. No arbitrary confidence percentages are fabricated.
+
+
 
 ### Sample JSON Payloads
 
