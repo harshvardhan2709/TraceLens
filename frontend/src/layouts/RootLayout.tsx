@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Activity, Terminal } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 
@@ -12,6 +12,13 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
   isBackendHealthy = null,
   isLoading = false,
 }) => {
+  const location = useLocation();
+
+  const isNavActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-200 flex flex-col font-sans">
       {/* Top Navbar */}
@@ -28,12 +35,26 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
               </div>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1.5">
               <Link
                 to="/"
-                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-200 bg-[#161F30] border border-[#23314B]"
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  isNavActive('/')
+                    ? 'text-slate-100 bg-[#161F30] border border-[#23314B]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#161F30]/50'
+                }`}
               >
                 Dashboard
+              </Link>
+              <Link
+                to="/incidents"
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  isNavActive('/incidents')
+                    ? 'text-slate-100 bg-[#161F30] border border-[#23314B]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#161F30]/50'
+                }`}
+              >
+                Incidents
               </Link>
             </nav>
           </div>

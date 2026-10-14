@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import RootLayout from '../layouts/RootLayout';
 import DashboardPage from '../pages/DashboardPage';
+import IncidentsPage from '../pages/IncidentsPage';
+import IncidentDetailPage from '../pages/IncidentDetailPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 export function AppRoutes() {
@@ -28,6 +30,8 @@ export function AppRoutes() {
             path="/"
             element={<DashboardPage onHealthUpdate={handleHealthUpdate} />}
           />
+          <Route path="/incidents" element={<IncidentsPage />} />
+          <Route path="/incidents/:id" element={<IncidentDetailPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

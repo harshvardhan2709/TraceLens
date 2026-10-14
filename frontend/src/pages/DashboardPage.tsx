@@ -13,8 +13,11 @@ import {
   Cpu,
   Layers,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { fetchServiceHealth, fetchDatabaseHealth } from '../api/health';
+import { fetchIncidents } from '../api/incidents';
 import type { ServiceHealth, DatabaseHealth } from '../types/health';
+import type { Incident } from '../types/incident';
 import MetricCard from '../components/MetricCard';
 import StatusBadge from '../components/StatusBadge';
 
@@ -30,6 +33,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showRawJson, setShowRawJson] = useState<boolean>(false);
+  const [recentIncidents, setRecentIncidents] = useState<Incident[]>([]);
 
   const checkHealth = useCallback(async () => {
     setIsLoading(true);
@@ -47,6 +51,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
       setDbHealth(dbRes);
       setLatencyMs(duration);
       setLastUpdated(new Date());
+
+      // If database is connected, also fetch recent incidents
+      if (dbRes.connected) {
+        try {
+          const incRes = await fetchIncidents(0, 5);
+          setRecentIncidents(incRes.items);
+        } catch {
+          // Non-blocking for health check
+        }
+      }
 
       const isHealthy = serviceRes.status === 'healthy';
       if (onHealthUpdate) {
@@ -322,28 +336,49 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onHealthUpdate }) 
           </div>
         </div>
 
-        {/* Mock Recent Incidents Table Placeholder */}
+        {/* Active Tracked Incidents Section */}
         <div className="border border-[#1F2937] rounded-md overflow-hidden">
-          <div className="bg-[#0D121D] px-4 py-2 text-xs font-mono text-slate-400 border-b border-[#1F2937] flex items-center justify-between">
-            <span>Sample Target Incidents (Mock Preview)</span>
-            <span className="text-[10px] text-slate-400">Ready for log ingestion pipeline</span>
+          <div className="bg-[#0D121D] px-4 py-2.5 text-xs font-mono text-slate-400 border-b border-[#1F2937] flex items-center justify-between">
+            <span className="font-semibold text-slate-300">Live Tracked Incidents</span>
+            <Link
+              to="/incidents"
+              className="text-[11px] text-indigo-400 hover:text-indigo-300 font-sans transition-colors"
+            >
+              View All Incidents →
+            </Link>
           </div>
-          <div className="divide-y divide-[#1F2937] text-xs font-mono">
-            <div className="p-3 flex items-center justify-between bg-[#111827]/40">
-              <div className="flex items-center gap-3">
-                <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 text-[10px]">504</span>
-                <span className="text-slate-200">POST /api/v1/orders/checkout</span>
-              </div>
-              <span className="text-slate-400 hidden sm:inline">Database connection pool exhaustion</span>
+          {recentIncidents.length > 0 ? (
+            <div className="divide-y divide-[#1F2937] text-xs font-mono">
+              {recentIncidents.map((inc) => (
+                <Link
+                  key={inc.id}
+                  to={`/incidents/${inc.id}`}
+                  className="p-3 flex items-center justify-between bg-[#111827]/40 hover:bg-[#161F30]/60 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 text-[10px] uppercase">
+                      {inc.status}
+                    </span>
+                    <span className="text-slate-200 group-hover:text-indigo-300 transition-colors truncate">
+                      {inc.title}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 text-slate-400 text-[11px]">
+                    <span>{inc.log_count} logs</span>
+                    <span className="hidden sm:inline">{new Date(inc.created_at).toLocaleTimeString()}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <div className="p-3 flex items-center justify-between bg-[#111827]/40">
-              <div className="flex items-center gap-3">
-                <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[10px]">500</span>
-                <span className="text-slate-200">GET /api/v1/telemetry/metrics</span>
-              </div>
-              <span className="text-slate-400 hidden sm:inline">Uncaught KeyError in log parser</span>
+          ) : (
+            <div className="p-6 text-center text-xs text-slate-400 font-mono bg-[#111827]/20">
+              No incidents recorded yet.{' '}
+              <Link to="/incidents" className="text-indigo-400 hover:underline">
+                Create an incident
+              </Link>{' '}
+              to start ingesting telemetry logs.
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

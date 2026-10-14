@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     MONGODB_DATABASE: str = "tracelens"
     MONGODB_TIMEOUT_MS: int = 2000
 
+    # Ingestion & Pagination Limits
+    MAX_LOG_BATCH_SIZE: int = 500
+    MAX_LOG_MESSAGE_LENGTH: int = 10000
+    DEFAULT_PAGE_SIZE: int = 50
+    MAX_PAGE_SIZE: int = 100
+
     # CORS configuration for local Vite development
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",

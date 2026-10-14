@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Optional, Tuple
 from pymongo import AsyncMongoClient, ASCENDING, DESCENDING
@@ -17,9 +18,20 @@ COLLECTION_LOG_EVENTS = "log_events"
 
 
 def get_client() -> AsyncMongoClient:
-    """Return the active AsyncMongoClient instance."""
-    if _mongo_client is None:
-        raise RuntimeError("MongoDB client is not initialized. Call init_db_client() during lifespan startup.")
+    """Return an AsyncMongoClient instance bound to the current running event loop."""
+    global _mongo_client
+    try:
+        current_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        current_loop = None
+
+    if _mongo_client is None or (_mongo_client._loop is not None and current_loop is not None and _mongo_client._loop != current_loop):
+        settings = get_settings()
+        _mongo_client = AsyncMongoClient(
+            settings.MONGODB_URL,
+            serverSelectionTimeoutMS=settings.MONGODB_TIMEOUT_MS,
+            connectTimeoutMS=settings.MONGODB_TIMEOUT_MS,
+        )
     return _mongo_client
 
 
@@ -107,9 +119,11 @@ async def ensure_indexes() -> None:
         incidents = get_incidents_collection()
         log_events = get_log_events_collection()
 
+        await incidents.create_index([("id", ASCENDING)], name="idx_incident_id_unique", unique=True)
         await incidents.create_index([("status", ASCENDING)], name="idx_incident_status")
         await incidents.create_index([("created_at", DESCENDING)], name="idx_incident_created_at")
 
+        await log_events.create_index([("id", ASCENDING)], name="idx_log_event_id_unique", unique=True)
         await log_events.create_index([("incident_id", ASCENDING)], name="idx_log_incident_id")
         await log_events.create_index([("timestamp", DESCENDING)], name="idx_log_timestamp")
         await log_events.create_index(

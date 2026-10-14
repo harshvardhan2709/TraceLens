@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.api.routes.health import router as health_router
+from app.api.routes.incidents import router as incidents_router
 from app.db.mongo import init_db_client, close_db_client, ensure_indexes
 
 logging.basicConfig(
@@ -48,6 +49,7 @@ app.add_middleware(
 
 # Register routes
 app.include_router(health_router, prefix=settings.API_V1_PREFIX)
+app.include_router(incidents_router, prefix=settings.API_V1_PREFIX)
 
 
 if __name__ == "__main__":

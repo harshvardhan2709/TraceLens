@@ -181,12 +181,64 @@ npm run dev
 
 ## 4. API Endpoints
 
+### Core Health & Telemetry
 | Method | Path | Description | Expected Status |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service status, project name, version, and environment | `200 OK` |
 | `GET` | `/api/health/db` | Probes MongoDB connectivity via `client.admin.command('ping')` | `200 OK` (connected) / `503 Service Unavailable` |
-| `GET` | `/api/docs` | Swagger UI documentation | `200 OK` |
+| `GET` | `/api/docs` | Interactive Swagger UI API documentation | `200 OK` |
 | `GET` | `/api/openapi.json` | OpenAPI 3.1 specification schema | `200 OK` |
+
+### Incidents & Log Ingestion (Phase 2B)
+| Method | Path | Description | Expected Status |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/incidents` | Create a new failure incident | `201 Created` |
+| `GET` | `/api/incidents` | List incidents with pagination (`skip`, `limit`) | `200 OK` |
+| `GET` | `/api/incidents/{incident_id}` | Retrieve incident details and correlated log count | `200 OK` / `404 Not Found` |
+| `POST` | `/api/incidents/{incident_id}/logs` | Ingest a validated batch of structured logs (max 500) | `201 Created` / `404 Not Found` / `422` |
+| `GET` | `/api/incidents/{incident_id}/logs` | Query correlated logs with filters (`severity`, `request_id`, `sort`) | `200 OK` / `404 Not Found` |
+
+### Sample JSON Payloads
+
+#### 1. Create an Incident (`POST /api/incidents`)
+```json
+{
+  "title": "POST /api/v1/orders/checkout - 504 Gateway Timeout",
+  "description": "High latency spike resulting in database connection pool starvation",
+  "status": "open"
+}
+```
+
+#### 2. Ingest Structured Logs (`POST /api/incidents/{incident_id}/logs`)
+```json
+{
+  "logs": [
+    {
+      "timestamp": "2026-10-14T05:07:47.000Z",
+      "severity": "INFO",
+      "message": "Received POST /checkout from client gateway",
+      "request_id": "req-9871",
+      "service_name": "api-gateway"
+    },
+    {
+      "timestamp": "2026-10-14T05:07:48.000Z",
+      "severity": "WARNING",
+      "message": "Connection pool utilization at 92.5%",
+      "request_id": "req-9871",
+      "service_name": "order-service",
+      "source_metadata": { "pool_size": 40, "active": 37 }
+    },
+    {
+      "timestamp": "2026-10-14T05:07:49.000Z",
+      "severity": "ERROR",
+      "message": "Failed to acquire database socket before timeout",
+      "request_id": "req-9871",
+      "service_name": "order-service",
+      "source_metadata": { "error_code": "ETIMEDOUT", "timeout_ms": 5000 }
+    }
+  ]
+}
+```
 
 ---
 
