@@ -58,3 +58,65 @@ export interface LogIngestionResponse {
   ingested_count: number;
   message: string;
 }
+
+export interface SeverityDistribution {
+  debug: number;
+  info: number;
+  warning: number;
+  error: number;
+  critical: number;
+  total: number;
+}
+
+export interface TimeWindow {
+  first_event_at?: string | null;
+  last_event_at?: string | null;
+  duration_seconds: number;
+}
+
+export interface ErrorGroup {
+  signature: string;
+  sample_message: string;
+  count: number;
+  severity: string;
+  service_names: string[];
+  first_seen_at: string;
+  last_seen_at: string;
+  evidence_log_ids: string[];
+}
+
+export interface RequestCorrelation {
+  request_id: string;
+  total_events: number;
+  has_error: boolean;
+  has_warning: boolean;
+  warning_preceded_error: boolean;
+  service_names: string[];
+  event_ids: string[];
+  first_event_at: string;
+  last_event_at: string;
+}
+
+export interface DiagnosticFinding {
+  finding_type: string;
+  rule_id: string;
+  title: string;
+  description: string;
+  evidence_log_ids: string[];
+  first_timestamp?: string | null;
+  last_timestamp?: string | null;
+  metadata?: Record<string, any> | null;
+}
+
+export interface IncidentAnalysisResponse {
+  incident_id: string;
+  analyzed_at: string;
+  total_logs: number;
+  severity_distribution: SeverityDistribution;
+  time_window: TimeWindow;
+  summary: string;
+  findings: DiagnosticFinding[];
+  error_groups: ErrorGroup[];
+  request_correlations: RequestCorrelation[];
+}
+

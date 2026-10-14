@@ -6,6 +6,7 @@ from app.schemas.log_event import (
     LogIngestionResponse,
     LogEventListResponse,
 )
+from app.schemas.analysis import IncidentAnalysisResponse
 from app.services.incident_service import (
     create_incident,
     get_incident_by_id,
@@ -14,6 +15,10 @@ from app.services.incident_service import (
 from app.services.log_service import (
     ingest_logs_for_incident,
     get_logs_for_incident,
+)
+from app.services.analysis_service import (
+    analyze_incident,
+    get_latest_analysis,
 )
 
 router = APIRouter(prefix="/incidents", tags=["Incidents & Logs"])
@@ -116,3 +121,26 @@ async def get_incident_logs(
         skip=skip,
         limit=limit,
     )
+
+
+@router.post(
+    "/{incident_id}/analyze",
+    response_model=IncidentAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Analyze incident logs deterministically",
+)
+async def post_analyze_incident(incident_id: str) -> IncidentAnalysisResponse:
+    """Execute deterministic failure correlation and pattern analysis on an incident's logs."""
+    return await analyze_incident(incident_id)
+
+
+@router.get(
+    "/{incident_id}/analysis",
+    response_model=IncidentAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get incident diagnostic analysis",
+)
+async def get_incident_analysis(incident_id: str) -> IncidentAnalysisResponse:
+    """Retrieve the latest deterministic analysis and findings for an incident."""
+    return await get_latest_analysis(incident_id)
+

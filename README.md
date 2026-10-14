@@ -198,6 +198,19 @@ npm run dev
 | `POST` | `/api/incidents/{incident_id}/logs` | Ingest a validated batch of structured logs (max 500) | `201 Created` / `404 Not Found` / `422` |
 | `GET` | `/api/incidents/{incident_id}/logs` | Query correlated logs with filters (`severity`, `request_id`, `sort`) | `200 OK` / `404 Not Found` |
 
+### Deterministic Failure Correlation Engine (Phase 3)
+| Method | Path | Description | Expected Status |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/incidents/{incident_id}/analyze` | Execute deterministic failure analysis, reconstruct timeline, group error signatures, and correlate request cascades | `200 OK` / `404 Not Found` |
+| `GET` | `/api/incidents/{incident_id}/analysis` | Retrieve the latest reproducible diagnostic analysis and findings for an incident | `200 OK` / `404 Not Found` |
+
+#### Deterministic Diagnostic Rules
+1. **`RULE_REPEATED_ERROR`**: Detects recurring failure signatures across services with exact occurrence counts and time spans.
+2. **`RULE_ERROR_BURST`**: Identifies dense failure event clusters (>= 3 errors within a 30s sliding window).
+3. **`RULE_REQUEST_WARNING_BEFORE_ERROR`**: Identifies requests where an early warning event chronologically preceded a failure event.
+4. **`RULE_SERVICE_ERROR_CONCENTRATION`**: Flags when a single service accounts for >= 65% of all incident errors.
+
+
 ### Sample JSON Payloads
 
 #### 1. Create an Incident (`POST /api/incidents`)

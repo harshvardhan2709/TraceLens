@@ -15,6 +15,7 @@ _mongo_client: Optional[AsyncMongoClient] = None
 # Collection constants
 COLLECTION_INCIDENTS = "incidents"
 COLLECTION_LOG_EVENTS = "log_events"
+COLLECTION_ANALYSES = "analyses"
 
 
 def get_client() -> AsyncMongoClient:
@@ -50,6 +51,11 @@ def get_incidents_collection() -> AsyncCollection:
 def get_log_events_collection() -> AsyncCollection:
     """Return collection for individual searchable log event documents."""
     return get_database()[COLLECTION_LOG_EVENTS]
+
+
+def get_analyses_collection() -> AsyncCollection:
+    """Return collection for deterministic incident analysis reports."""
+    return get_database()[COLLECTION_ANALYSES]
 
 
 async def init_db_client() -> AsyncMongoClient:
@@ -132,6 +138,10 @@ async def ensure_indexes() -> None:
         )
         await log_events.create_index([("severity", ASCENDING)], name="idx_log_severity")
         await log_events.create_index([("request_id", ASCENDING)], name="idx_log_request_id", sparse=True)
+
+        analyses = get_analyses_collection()
+        await analyses.create_index([("incident_id", ASCENDING)], name="idx_analysis_incident_id", unique=True)
+        await analyses.create_index([("analyzed_at", DESCENDING)], name="idx_analysis_analyzed_at")
         logger.info("MongoDB indexes verified successfully.")
     except Exception as exc:
         logger.warning("Could not verify MongoDB indexes: %s", exc)

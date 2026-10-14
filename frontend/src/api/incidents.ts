@@ -3,6 +3,7 @@ import type {
   Incident,
   IncidentCreate,
   IncidentListResponse,
+  IncidentAnalysisResponse,
   LogEventCreate,
   LogEventListResponse,
   LogIngestionResponse,
@@ -56,3 +57,14 @@ export async function ingestIncidentLogs(
   });
   return response.data;
 }
+
+export async function analyzeIncident(incidentId: string): Promise<IncidentAnalysisResponse> {
+  const response = await apiClient.post<IncidentAnalysisResponse>(`/incidents/${incidentId}/analyze`);
+  return response.data;
+}
+
+export async function fetchIncidentAnalysis(incidentId: string): Promise<IncidentAnalysisResponse> {
+  const response = await apiClient.get<IncidentAnalysisResponse>(`/incidents/${incidentId}/analysis`);
+  return response.data;
+}
+
